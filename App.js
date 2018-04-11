@@ -1,126 +1,170 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
-
 import React, {Component} from 'react';
+import ImagePicker from 'react-native-image-picker';
 import {
     StyleSheet,
+    Dimensions,
     Text,
     View,
+    TouchableOpacity,
     Image,
     ScrollView
 } from 'react-native';
 
-const convertRatio = 2.2;
+import {EventsFeed} from "./src/components/EventsFeed";
+import {ProgressButton} from "./src/components/ProgressButton";
+
+import {Colors} from "./src/config/colors";
+import {ConvertRatio} from "./src/config/settings";
 
 type Props = {};
 export default class App extends Component<Props> {
-    render() {
+    state = {
+        childAvatarSource: false,
+        dailyEvents: [{name: 'Событие 1'}, {name: 'Событие 2'}],
+        weeklyEvents: [{name: 'Событие 3'}]
+    };
+
+    takePicture() {
+        let imagePickerOptions = {
+            title: 'Выберите изображение',
+            takePhotoButtonTitle: 'Сделать фотографию...',
+            chooseFromLibraryButtonTitle: 'Выбрать из каталога изображений...',
+            storageOptions: {
+                skipBackup: true,
+                path: 'images'
+            }
+        };
+
+        ImagePicker.showImagePicker(imagePickerOptions, (response) => {
+            let isPictureAccepted = !response.didCancel && !response.error;
+
+            if (isPictureAccepted) {
+                let source = { uri: response.uri };
+
+                this.setState({
+                    childAvatarSource: source
+                });
+            }
+        });
+    }
+
+    renderTakePictureButton() {
+        return (
+            <TouchableOpacity style={styles.childPortraitContainer} onPress={this.takePicture.bind(this)}>
+                <View style={styles.childPortrait}>
+                    <Image source={require('./assets/dashboard/photoCamera.png')} style={{width: 16*ConvertRatio, height: 16*ConvertRatio}}/>
+                </View>
+            </TouchableOpacity>
+        );
+    }
+
+    renderProfilePicture() {
+        let hasNoProfilePicture = this.state.childAvatarSource === false;
+        let childAvatarSource = this.state.childAvatarSource;
+
+        if (hasNoProfilePicture) {
+            return this.renderTakePictureButton();
+        }
+
+        return (
+            <Image source={childAvatarSource} style={styles.childPortrait} onPress={this.takePicture.bind(this)}/>
+        );
+    }
+
+    renderDashboard() {
         return (
             <View style={styles.container}>
                 <View style={styles.topOval}>
-                    <Image source={require('./assets/dashboard/shape.png')} style={{height: 10*convertRatio, width: 10*convertRatio}}/>
+                    <Image source={require('./assets/dashboard/shape.png')} style={{height: 10*ConvertRatio, width: 10*ConvertRatio}}/>
                     <Text style={styles.childText}>Петька, 7 мес</Text>
-                    <Image source={require('./assets/dashboard/menu.png')} style={{height: 10*convertRatio, width: 10*convertRatio}}/>
+                    <Image source={require('./assets/dashboard/menu.png')} style={{height: 10*ConvertRatio, width: 10*ConvertRatio}}/>
                 </View>
                 <View style={styles.topButtons}>
-                    <View style={styles.topButton}>
-                        <Image source={require('./assets/dashboard/doll2.png')} style={{width: 10.5*convertRatio, height: 13.5*convertRatio}}/>
+                    <View>
+                        <View style={styles.topButton}>
+                            <Image source={require('./assets/dashboard/doll2.png')} style={{width: 10.5*ConvertRatio, height: 13.5*ConvertRatio}}/>
+                        </View>
+                        <Text style={styles.topButtonTitle}>Рост и вес</Text>
                     </View>
 
-                    <View style={styles.childPortrait}>
-                    </View>
+                    {this.renderProfilePicture()}
 
-                    <View style={styles.topButton}>
-                        <Image source={require('./assets/dashboard/pyramid2.png')} style={{width: 10.5*convertRatio, height: 11.5*convertRatio}}/>
+                    <View>
+                        <View style={styles.topButton}>
+                            <Image source={require('./assets/dashboard/pyramid2.png')} style={{width: 10.5*ConvertRatio, height: 11.5*ConvertRatio}}/>
+                        </View>
+                        <Text style={styles.topButtonTitle}>Достижения</Text>
                     </View>
                 </View>
-                <ScrollView style={{marginTop: -28.5*convertRatio, zIndex: 50}}>
+                <ScrollView style={{marginTop: -28.5*ConvertRatio, zIndex: 50}}>
                     <View style={styles.dashboard}>
                         <View style={styles.dashboardButtons}>
-                            <View style={styles.dashboardButton}>
-                                <Image source={require('./assets/dashboard/moon.png')} style={{width: 15.4*convertRatio, height: 16*convertRatio}}/>
-                            </View>
-
-                            <View style={styles.dashboardButton}>
-                                <Image source={require('./assets/dashboard/feedingBottle.png')} style={{width: 8*convertRatio, height: 17.5*convertRatio}}/>
-                            </View>
-
-                            <View style={styles.dashboardButton}>
-                                <Image source={require('./assets/dashboard/diaper.png')} style={{width: 15*convertRatio, height: 12.5*convertRatio}}/>
-                            </View>
-
-                            <View style={styles.dashboardButton}>
-                                <Image source={require('./assets/dashboard/baby.png')} style={{width: 18.5*convertRatio, height: 16*convertRatio}}/>
-                            </View>
+                            <ProgressButton title="Устал" description="Спал 2ч назад" icon='moon' progressColor="" />
+                            <ProgressButton title="Сыт" description="Ел 15м назад" icon='feedingBottle' progressColor="" />
+                            <ProgressButton title="Чистый" description="5м назад" icon='diaper' progressColor="" />
+                            <ProgressButton title="Рад" description="" icon='baby' progressColor="" />
                         </View>
                     </View>
-                    <Text style={styles.scheduleHeading}>Дела на сегодня</Text>
-                    <View style={styles.eventCard}/>
-                    <View style={styles.eventCard}/>
-                    <Text style={styles.scheduleHeading}>На этой неделе</Text>
-                    <View style={styles.eventCard}/>
+                    <EventsFeed title="Дела на сегодня" events={this.state.dailyEvents}/>
+                    <EventsFeed title="На этой неделе" events={this.state.weeklyEvents}/>
                 </ScrollView>
             </View>
         );
     }
-}
 
-const colors = {
-    darkSkyBlue: "#3fabe6"
-};
+    render() {
+        return this.renderDashboard();
+    }
+}
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: colors.darkSkyBlue,
+        backgroundColor: Colors.darkSkyBlue,
     },
     topOval: {
-        height: 51*convertRatio,
+        height: 51 * ConvertRatio,
         flexDirection: 'row',
         justifyContent: 'space-between',
         backgroundColor: "#ffffff",
-        padding: 7*convertRatio,
+        padding: 7 * ConvertRatio,
         zIndex: 100,
     },
     topButtons: {
-        height: 57*convertRatio,
+        height: 57 * ConvertRatio,
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: -28.5*convertRatio,
+        marginTop: -28.5 * ConvertRatio,
         backgroundColor: 'transparent',
         flexDirection: 'row',
-        paddingLeft: 17*convertRatio,
-        paddingRight: 17*convertRatio,
+        paddingLeft: 17 * ConvertRatio,
+        paddingRight: 17 * ConvertRatio,
         position: 'relative',
         zIndex: 110,
     },
     dashboard: {
-        height: 97*convertRatio,
+        height: 97 * ConvertRatio,
         backgroundColor: 'white',
-        marginLeft: 7*convertRatio,
-        marginRight: 7*convertRatio,
-        borderRadius: 9*convertRatio,
-        marginTop: 30*convertRatio
+        marginLeft: 7 * ConvertRatio,
+        marginRight: 7 * ConvertRatio,
+        borderRadius: 9 * ConvertRatio,
+        marginTop: 30 * ConvertRatio
     },
     dashboardButtons: {
-        height: 32*convertRatio,
         justifyContent: 'space-between',
         alignItems: 'center',
         flexDirection: 'row',
-        paddingLeft: 11*convertRatio,
-        paddingRight: 11*convertRatio,
-        paddingTop: 11*convertRatio
+        paddingLeft: 11 * ConvertRatio,
+        paddingRight: 11 * ConvertRatio,
+        paddingTop: 11 * ConvertRatio
     },
     topButton: {
-        width: 32*convertRatio,
-        height: 32*convertRatio,
+        width: 32 * ConvertRatio,
+        height: 32 * ConvertRatio,
         backgroundColor: "#ffffff",
         justifyContent: 'center',
         alignItems: 'center',
-        borderRadius: 16*convertRatio,
+        borderRadius: 16 * ConvertRatio,
         elevation: 20,
         shadowColor: "rgba(0, 0, 0, 0.18)",
         shadowOffset: {
@@ -130,53 +174,52 @@ const styles = StyleSheet.create({
         shadowRadius: 2,
         shadowOpacity: 1
     },
-    dashboardButton: {
-        width: 32*convertRatio,
-        height: 32*convertRatio,
-        backgroundColor: "#ffffff",
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 16*convertRatio,
-        borderStyle: "solid",
-        borderWidth: 2*convertRatio,
-        borderColor: "#e0e3e6"
+    topButtonTitle: {
+        width: 32 * ConvertRatio,
+        fontFamily: "Muller",
+        fontSize: 4.5 * ConvertRatio,
+        fontWeight: "800",
+        fontStyle: "normal",
+        letterSpacing: 0,
+        textAlign: "center",
+        color: "#ffffff"
+    },
+    childPortraitContainer: {
+        backgroundColor: '#ffffff',
+        borderRadius: 28.5 * ConvertRatio
     },
     childPortrait: {
-        width: 57*convertRatio,
-        height: 57*convertRatio,
-        borderRadius: 28.5*convertRatio,
-        borderStyle: "solid",
-        borderWidth: 3.5*convertRatio,
-        borderColor: colors.darkSkyBlue,
-        backgroundColor: '#ffffff'
+        width: 57 * ConvertRatio,
+        height: 57 * ConvertRatio,
+        borderRadius: 28.5 * ConvertRatio,
+        borderWidth: 3.5 * ConvertRatio,
+        borderColor: Colors.darkSkyBlue,
+        backgroundColor: 'transparent',
+        justifyContent: 'center',
+        alignItems: 'center'
     },
     childText: {
-        fontSize: 7.5*convertRatio,
+        fontSize: 7.5 * ConvertRatio,
         fontFamily: "Muller",
         fontWeight: "bold",
         fontStyle: "normal",
         letterSpacing: 0,
         textAlign: "center"
     },
-    scheduleHeading: {
-        fontFamily: "Muller",
-        fontSize: 6.5*convertRatio,
-        fontWeight: "bold",
-        fontStyle: "normal",
-        letterSpacing: 0,
-        textAlign: "left",
-        color: "#ffffff",
-        marginLeft: 17*convertRatio,
-        marginRight: 17*convertRatio,
-        marginBottom: 8*convertRatio,
-        marginTop: 16*convertRatio
+
+    preview: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        height: Dimensions.get('window').height,
+        width: Dimensions.get('window').width
     },
-    eventCard: {
-        height: 30*convertRatio,
-        backgroundColor: 'white',
-        borderRadius: 5*convertRatio,
-        marginLeft: 17*convertRatio,
-        marginRight: 17*convertRatio,
-        marginBottom: 5*convertRatio
+    capture: {
+        flex: 0,
+        backgroundColor: '#fff',
+        borderRadius: 5,
+        color: '#000',
+        padding: 10,
+        margin: 40
     }
 });
