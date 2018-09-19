@@ -1,225 +1,104 @@
 import React, {Component} from 'react';
-import ImagePicker from 'react-native-image-picker';
-import {
-    StyleSheet,
-    Dimensions,
-    Text,
-    View,
-    TouchableOpacity,
-    Image,
-    ScrollView
-} from 'react-native';
 
-import {EventsFeed} from "./src/components/EventsFeed";
-import {ProgressButton} from "./src/components/ProgressButton";
-
-import {Colors} from "./src/config/colors";
-import {ConvertRatio} from "./src/config/settings";
+import {Dashboard} from "./src/components/Dashboard";
+import {NewProfile} from "./src/components/NewProfile";
+import SexSelect from "./src/components/NewProfile/SexSelect";
+import NameInput from "./src/components/NewProfile/NameInput";
+import BirthdayInput from "./src/components/NewProfile/BirthdayInput";
+import PhotoInput from "./src/components/NewProfile/PhotoInput";
+import HeightInput from "./src/components/NewProfile/HeightInput";
+import WeightInput from "./src/components/NewProfile/WeightInput";
+import { NativeRouter, Route, Switch } from 'react-router-native'
+import PropTypes from "prop-types";
 
 type Props = {};
+
+function stringSeq(from, to, step) {
+    let seq = [];
+    for (let index = from; index >= to; index = index - step) {
+        let indexString = step < 1
+            ? index.toFixed(1)
+            : index.toString();
+
+        seq.push(indexString);
+    }
+
+    return seq;
+}
+
 export default class App extends Component<Props> {
-    state = {
-        childAvatarSource: false,
-        dailyEvents: [{name: 'Событие 1'}, {name: 'Событие 2'}],
-        weeklyEvents: [{name: 'Событие 3'}]
+    static propTypes = {
+        sex: PropTypes.string,
+        name: PropTypes.string,
+        birthday: PropTypes.instanceOf(Date),
+        photo: PropTypes.object,
+        weight: PropTypes.number,
+        height: PropTypes.number
     };
 
-    takePicture() {
-        let imagePickerOptions = {
-            title: 'Выберите изображение',
-            takePhotoButtonTitle: 'Сделать фотографию...',
-            chooseFromLibraryButtonTitle: 'Выбрать из каталога изображений...',
-            storageOptions: {
-                skipBackup: true,
-                path: 'images'
-            }
+    constructor(props) {
+        super(props);
+        this.state = {
+            sex: 'male'
         };
-
-        ImagePicker.showImagePicker(imagePickerOptions, (response) => {
-            let isPictureAccepted = !response.didCancel && !response.error;
-
-            if (isPictureAccepted) {
-                let source = { uri: response.uri };
-
-                this.setState({
-                    childAvatarSource: source
-                });
-            }
-        });
     }
 
-    renderTakePictureButton() {
-        return (
-            <TouchableOpacity style={styles.childPortraitContainer} onPress={this.takePicture.bind(this)}>
-                <View style={styles.childPortrait}>
-                    <Image source={require('./assets/dashboard/photoCamera.png')} style={{width: 16*ConvertRatio, height: 16*ConvertRatio}}/>
-                </View>
-            </TouchableOpacity>
-        );
+    changeSex(newSex) {
+        this.setState({'sex': newSex});
     }
 
-    renderProfilePicture() {
-        let hasNoProfilePicture = this.state.childAvatarSource === false;
-        let childAvatarSource = this.state.childAvatarSource;
-
-        if (hasNoProfilePicture) {
-            return this.renderTakePictureButton();
-        }
-
-        return (
-            <Image source={childAvatarSource} style={styles.childPortrait} onPress={this.takePicture.bind(this)}/>
-        );
+    changeName(newName) {
+        this.setState({'name': newName});
     }
 
-    renderDashboard() {
-        return (
-            <View style={styles.container}>
-                <View style={styles.topOval}>
-                    <Image source={require('./assets/dashboard/shape.png')} style={{height: 10*ConvertRatio, width: 10*ConvertRatio}}/>
-                    <Text style={styles.childText}>Петька, 7 мес</Text>
-                    <Image source={require('./assets/dashboard/menu.png')} style={{height: 10*ConvertRatio, width: 10*ConvertRatio}}/>
-                </View>
-                <View style={styles.topButtons}>
-                    <View>
-                        <View style={styles.topButton}>
-                            <Image source={require('./assets/dashboard/doll2.png')} style={{width: 10.5*ConvertRatio, height: 13.5*ConvertRatio}}/>
-                        </View>
-                        <Text style={styles.topButtonTitle}>Рост и вес</Text>
-                    </View>
+    changeBirthday(newBirthday) {
+        this.setState({'birthday': newBirthday});
+    }
 
-                    {this.renderProfilePicture()}
+    changePhoto(newPhoto) {
+        this.setState({'photo': newPhoto});
+    }
 
-                    <View>
-                        <View style={styles.topButton}>
-                            <Image source={require('./assets/dashboard/pyramid2.png')} style={{width: 10.5*ConvertRatio, height: 11.5*ConvertRatio}}/>
-                        </View>
-                        <Text style={styles.topButtonTitle}>Достижения</Text>
-                    </View>
-                </View>
-                <ScrollView style={{marginTop: -28.5*ConvertRatio, zIndex: 50}}>
-                    <View style={styles.dashboard}>
-                        <View style={styles.dashboardButtons}>
-                            <ProgressButton title="Устал" description="Спал 2ч назад" icon='moon' progressColor="" />
-                            <ProgressButton title="Сыт" description="Ел 15м назад" icon='feedingBottle' progressColor="" />
-                            <ProgressButton title="Чистый" description="5м назад" icon='diaper' progressColor="" />
-                            <ProgressButton title="Рад" description="" icon='baby' progressColor="" />
-                        </View>
-                    </View>
-                    <EventsFeed title="Дела на сегодня" events={this.state.dailyEvents}/>
-                    <EventsFeed title="На этой неделе" events={this.state.weeklyEvents}/>
-                </ScrollView>
-            </View>
-        );
+    changeWeight(newWeight) {
+        this.setState({'weight': newWeight});
+    }
+
+    changeHeight(newHeight) {
+        this.setState({'height': newHeight});
     }
 
     render() {
-        return this.renderDashboard();
+        return (
+            <NativeRouter>
+                <Switch>
+                    <Route exact path="/" component={NewProfile}/>
+                    <Route path="/profile/sex" render={() => <SexSelect sex={this.state.sex} onChange={this.changeSex.bind(this)}/>} />
+                    <Route path="/profile/name" render={() => <NameInput sex={this.state.sex} name={this.state.name} onChange={this.changeName.bind(this)}/>} />
+                    <Route path="/profile/birthday" render={() => <BirthdayInput sex={this.state.sex} name={this.state.name} onChange={this.changeBirthday.bind(this)}/>} />
+                    <Route path="/profile/photo" render={() => <PhotoInput sex={this.state.sex} onChange={this.changePhoto.bind(this)}/>} />
+                    <Route path="/profile/height" render={() => (
+                        <HeightInput
+                            sex={this.state.sex}
+                            name={this.state.name}
+                            items={stringSeq(65, 35, 1)}
+                            photo={this.state.photo}
+                            next="/profile/weight"
+                            onChange={this.changeHeight.bind(this)} />
+                    )}/>
+                    <Route path="/profile/weight" render={() => (
+                        <WeightInput
+                            sex={this.state.sex}
+                            name={this.state.name}
+                            items={stringSeq(5.0, 1.5, 0.1)}
+                            photo={this.state.photo}
+                            next="/dashboard"
+                            onChange={this.changeWeight.bind(this)} />
+                    )}/>
+                    <Route path="/dashboard" render={() => (
+                        <Dashboard sex={this.state.sex} name={this.state.name} birthday={this.state.birthday} photo={this.state.photo} />
+                    )}/>
+                </Switch>
+            </NativeRouter>
+        );
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.darkSkyBlue,
-    },
-    topOval: {
-        height: 51 * ConvertRatio,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: "#ffffff",
-        padding: 7 * ConvertRatio,
-        zIndex: 100,
-    },
-    topButtons: {
-        height: 57 * ConvertRatio,
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: -28.5 * ConvertRatio,
-        backgroundColor: 'transparent',
-        flexDirection: 'row',
-        paddingLeft: 17 * ConvertRatio,
-        paddingRight: 17 * ConvertRatio,
-        position: 'relative',
-        zIndex: 110,
-    },
-    dashboard: {
-        height: 97 * ConvertRatio,
-        backgroundColor: 'white',
-        marginLeft: 7 * ConvertRatio,
-        marginRight: 7 * ConvertRatio,
-        borderRadius: 9 * ConvertRatio,
-        marginTop: 30 * ConvertRatio
-    },
-    dashboardButtons: {
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        flexDirection: 'row',
-        paddingLeft: 11 * ConvertRatio,
-        paddingRight: 11 * ConvertRatio,
-        paddingTop: 11 * ConvertRatio
-    },
-    topButton: {
-        width: 32 * ConvertRatio,
-        height: 32 * ConvertRatio,
-        backgroundColor: "#ffffff",
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 16 * ConvertRatio,
-        elevation: 20,
-        shadowColor: "rgba(0, 0, 0, 0.18)",
-        shadowOffset: {
-            width: 0,
-            height: 1
-        },
-        shadowRadius: 2,
-        shadowOpacity: 1
-    },
-    topButtonTitle: {
-        width: 32 * ConvertRatio,
-        fontFamily: "Muller",
-        fontSize: 4.5 * ConvertRatio,
-        fontWeight: "800",
-        fontStyle: "normal",
-        letterSpacing: 0,
-        textAlign: "center",
-        color: "#ffffff"
-    },
-    childPortraitContainer: {
-        backgroundColor: '#ffffff',
-        borderRadius: 28.5 * ConvertRatio
-    },
-    childPortrait: {
-        width: 57 * ConvertRatio,
-        height: 57 * ConvertRatio,
-        borderRadius: 28.5 * ConvertRatio,
-        borderWidth: 3.5 * ConvertRatio,
-        borderColor: Colors.darkSkyBlue,
-        backgroundColor: 'transparent',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    childText: {
-        fontSize: 7.5 * ConvertRatio,
-        fontFamily: "Muller",
-        fontWeight: "bold",
-        fontStyle: "normal",
-        letterSpacing: 0,
-        textAlign: "center"
-    },
-
-    preview: {
-        flex: 1,
-        justifyContent: 'flex-end',
-        alignItems: 'center',
-        height: Dimensions.get('window').height,
-        width: Dimensions.get('window').width
-    },
-    capture: {
-        flex: 0,
-        backgroundColor: '#fff',
-        borderRadius: 5,
-        color: '#000',
-        padding: 10,
-        margin: 40
-    }
-});
